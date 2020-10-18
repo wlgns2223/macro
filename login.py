@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QCheckBox
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QGridLayout
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem
 
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 
@@ -84,6 +84,7 @@ class AccountInput(QWidget):
 class AccountList(QWidget):
 
     VALID = {True: 'O', False: 'X'}
+    horizontalHeader = ['체크', '아이디', '비밀번호', '검증']
 
     def __init__(self):
         super().__init__()
@@ -92,96 +93,61 @@ class AccountList(QWidget):
         self.maxAccountLen = 5
 
         self.layout = QVBoxLayout()
-        self.indexLayout = QGridLayout()
-        self.elementLayout = QGridLayout()
+        self.tableList = QTableWidget()
 
         self.initUI()
-        # self.init_settings()
-        self.init_signals()
 
     def initUI(self):
-
-        self.init_index_layout()
-        self.layout.addLayout(self.indexLayout)
-        self.layout.addLayout(self.elementLayout)
-
+        self.layout.addWidget(self.tableList)
+        self.table_setting()
         self.setLayout(self.layout)
 
-    def init_settings(self):
-        size = self.sizeHint()
-        self.setFixedWidth(size.width())
-
-    def init_signals(self):
-
-        indexCheckBox = self.indexLayout.itemAtPosition(0, 0).widget()
-        indexCheckBox.stateChanged.connect(self.onStateChanged)
-
-    def init_index_layout(self):
-        self.indexLayout.addWidget(QCheckBox(), 0, 0)
-        self.indexLayout.addWidget(QLabel('번호'), 0, 1)
-        self.indexLayout.addWidget(QLabel('계정'), 0, 2)
-        self.indexLayout.addWidget(QLabel('비밀번호'), 0, 3)
-        self.indexLayout.addWidget(QLabel('검증'), 0, 4)
+    def table_setting(self):
+        self.tableList.showGrid()
+        self.tableList.setColumnCount(len(self.horizontalHeader))
+        self.tableList.setHorizontalHeaderLabels(self.horizontalHeader)
+        self.tableList.alternatingRowColors()
 
     def make_connection(self, obj):
 
         if type(obj).__name__ == 'AccountInput':
             obj.send_account.connect(self.onAccountSent)
-        elif type(obj).__name__ == 'Buttons':
-            obj.validationButton.clicked.connect(self.onValidationClicked)
 
-    @pyqtSlot()
-    def onValidationClicked(self):
+    def addItem(self, account):
+        row = self.tableList.rowCount()
+        self.tableList.insertRow(row)
 
-        accounts = []
-        row = len(self.accountList)
-        col = len(self.accountList[0])
-
-        for pos in range(row):
-
-            items = [self.elementLayout.itemAtPosition(
-                pos, idx).widget() for idx in range(col)]
-
-            if items[0].checkState() == Qt.Checked:
-                id = items[1].text()
-                passwd = items[2].text()
-                accounts.append((id, passwd))
-
-    @pyqtSlot()
-    def onStateChanged(self):
-        indexCheckBox = self.indexLayout.itemAtPosition(0, 0).widget()
-        indexState = indexCheckBox.checkState()
-
-        accounts = self.accountList
-
-        for idx in range(len(accounts)):
-            checkBox = self.elementLayout.itemAtPosition(idx, 0).widget()
-            checkBox.setChecked(indexState)
+        chkbox = QTableWidgetItem()
+        chkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+        chkbox.setCheckState(Qt.Unchecked)
+        self.tableList.setItem(row, 0, chkbox)
+        self.tableList.setItem(row, 1, MyTableWidgetItem(account[0]))
+        self.tableList.setItem(row, 2, QTableWidgetItem(account[1]))
+        self.tableList.setItem(
+            row, 3, QTableWidgetItem(self.VALID[False]))
 
     @pyqtSlot(tuple)
     def onAccountSent(self, account):
 
         if self.maxAccountLen > len(self.accountList):
 
-            id = account[0]
-            passwd = account[1]
-            num = len(self.accountList)
+            self.accountList.append(account)
+            self.addItem(account)
 
-            elem = (QCheckBox(), QLabel(str(num+1)), QLabel(str(id)),
-                    QLabel(str(passwd)), QLabel(self.VALID[False]))
-            self.accountList.append(elem)
-
-            pos = 0
-            for e in elem:
-                self.elementLayout.addWidget(e, num, pos)
-                pos += 1
         else:
             title = "Information"
             text = "최대 {}개의 계정만 추가 하실 수 있습니다.".format(self.maxAccountLen)
             reply = QMessageBox.warning(self, title, text)
 
 
-class Buttons(QWidget):
+class MyTableWidgetItem(QTableWidgetItem):
+
+    def __init__(self, arg):
+        super().__init__(arg)
+        self.setFlags(self.flags() ^ Qt.ItemIsEditable)
+
+
+class ValidationButtons(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -210,7 +176,7 @@ class Login(QWidget):
         self.label = Title()
         self.account_input = AccountInput()
         self.account_list = AccountList()
-        self.buttons = Buttons()
+        self.buttons = ValidationButtons()
 
         self.init_settings()
         self.initUI()
