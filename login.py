@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QCheckBox
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QGridLayout
 from PyQt5.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QHeaderView
 
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 
@@ -108,12 +109,20 @@ class AccountList(QWidget):
         self.tableList.setHorizontalHeaderLabels(self.horizontalHeader)
         self.tableList.alternatingRowColors()
 
+        for idx in range(len(self.horizontalHeader)):
+            self.tableList.setColumnWidth(idx, 70)
+
     def make_connection(self, obj):
 
         if type(obj).__name__ == 'AccountInput':
             obj.send_account.connect(self.onAccountSent)
 
-    def addItem(self, account):
+        elif type(obj).__name__ == 'ValidationButtons':
+            validationStartButton = obj.validationButton
+            validationStartButton.clicked.connect(
+                self.onValidationStartClicked)
+
+    def add_item(self, account):
         row = self.tableList.rowCount()
         self.tableList.insertRow(row)
 
@@ -126,18 +135,32 @@ class AccountList(QWidget):
         self.tableList.setItem(
             row, 3, QTableWidgetItem(self.VALID[False]))
 
+    def __get_checked_items(self):
+        t = self.tableList
+
+        checkedItems = [(t.item(row, 1), t.item(row, 2))
+                        for row in range(t.rowCount()) if t.item(row, 0) == Qt.Checked]
+
+        return checkedItems
+
     @pyqtSlot(tuple)
     def onAccountSent(self, account):
 
         if self.maxAccountLen > len(self.accountList):
 
             self.accountList.append(account)
-            self.addItem(account)
+            self.add_item(account)
 
         else:
             title = "Information"
             text = "최대 {}개의 계정만 추가 하실 수 있습니다.".format(self.maxAccountLen)
             reply = QMessageBox.warning(self, title, text)
+
+    @pyqtSlot()
+    def onValidationStartClicked(self):
+
+        items = self.__get_checked_items()
+        print(items)
 
 
 class MyTableWidgetItem(QTableWidgetItem):
