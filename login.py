@@ -138,8 +138,8 @@ class AccountList(QWidget):
     def __get_checked_items(self):
         t = self.tableList
 
-        checkedItems = [(t.item(row, 1), t.item(row, 2))
-                        for row in range(t.rowCount()) if t.item(row, 0) == Qt.Checked]
+        checkedItems = [(t.item(row, 1).text(), t.item(row, 2).text())
+                        for row in range(t.rowCount()) if t.item(row, 0).checkState() == Qt.Checked]
 
         return checkedItems
 
