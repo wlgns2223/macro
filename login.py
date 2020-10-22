@@ -118,9 +118,22 @@ class AccountList(QWidget):
             obj.send_account.connect(self.onAccountSent)
 
         elif type(obj).__name__ == 'ValidationButtons':
-            validationStartButton = obj.validationButton
-            validationStartButton.clicked.connect(
-                self.onValidationStartClicked)
+            validation_button = obj.validation_button
+            delete_button = obj.delete_button
+
+            validation_button.clicked.connect(
+                self.on_validation_button_clicked)
+
+            delete_button.clicked.connect()
+
+    @pyqtSlot()
+    def on_delete_button_clicked(self):
+        for row in range(len(self.accountList)):
+
+        pass
+
+    def __delete_row(self, row):
+        pass
 
     def add_item(self, account):
         row = self.tableList.rowCount()
@@ -129,11 +142,14 @@ class AccountList(QWidget):
         chkbox = QTableWidgetItem()
         chkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
         chkbox.setCheckState(Qt.Unchecked)
-        self.tableList.setItem(row, 0, chkbox)
-        self.tableList.setItem(row, 1, MyTableWidgetItem(account[0]))
-        self.tableList.setItem(row, 2, QTableWidgetItem(account[1]))
         self.tableList.setItem(
-            row, 3, QTableWidgetItem(self.VALID[False]))
+            row, 0, chkbox)
+        self.tableList.setItem(
+            row, 1, MyTableWidgetItem(account[0]))
+        self.tableList.setItem(
+            row, 2, MyTableWidgetItem(account[1]))
+        self.tableList.setItem(
+            row, 3, MyTableWidgetItem(self.VALID[False]))
 
     def __get_checked_items(self):
         t = self.tableList
@@ -157,7 +173,7 @@ class AccountList(QWidget):
             reply = QMessageBox.warning(self, title, text)
 
     @pyqtSlot()
-    def onValidationStartClicked(self):
+    def on_validation_button_clicked(self):
 
         items = self.__get_checked_items()
         print(items)
@@ -175,19 +191,19 @@ class ValidationButtons(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.validationButton = QPushButton()
-        self.deleteButton = QPushButton()
+        self.validation_button = QPushButton()
+        self.delete_button = QPushButton()
 
         self.initUI()
 
     def initUI(self):
 
-        self.validationButton.setText('검증 시작')
-        self.deleteButton.setText('선택 삭제')
+        self.validation_button.setText('검증 시작')
+        self.delete_button.setText('선택 삭제')
 
         layout = QHBoxLayout()
-        layout.addWidget(self.validationButton)
-        layout.addWidget(self.deleteButton)
+        layout.addWidget(self.validation_button)
+        layout.addWidget(self.delete_button)
 
         self.setLayout(layout)
 
