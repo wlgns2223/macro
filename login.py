@@ -124,16 +124,7 @@ class AccountList(QWidget):
             validation_button.clicked.connect(
                 self.on_validation_button_clicked)
 
-            delete_button.clicked.connect()
-
-    @pyqtSlot()
-    def on_delete_button_clicked(self):
-        for row in range(len(self.accountList)):
-
-        pass
-
-    def __delete_row(self, row):
-        pass
+            delete_button.clicked.connect(self.on_delete_button_clicked)
 
     def add_item(self, account):
         row = self.tableList.rowCount()
@@ -158,6 +149,22 @@ class AccountList(QWidget):
                         for row in range(t.rowCount()) if t.item(row, 0).checkState() == Qt.Checked]
 
         return checkedItems
+
+    @pyqtSlot()
+    def on_delete_button_clicked(self):
+
+        qtable = self.tableList
+        row = []
+
+        for index in range(qtable.rowCount()):
+            if qtable.item(index, 0).checkState() == Qt.Checked:
+                row.append(index)
+
+        row = tuple(row)
+
+        for index in sorted(row, reverse=True):
+            qtable.removeRow(index)
+            del self.accountList[index]
 
     @pyqtSlot(tuple)
     def onAccountSent(self, account):
