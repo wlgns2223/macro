@@ -108,6 +108,7 @@ class AccountList(QWidget):
         self.table_list.setColumnCount(len(self.horizontal_header))
         self.table_list.setHorizontalHeaderLabels(self.horizontal_header)
         self.table_list.alternatingRowColors()
+        self.table_list.setMouseTracking(True)
 
         for idx in range(len(self.horizontal_header)):
             self.table_list.setColumnWidth(idx, 70)
@@ -126,21 +127,39 @@ class AccountList(QWidget):
 
             delete_button.clicked.connect(self.on_delete_button_clicked)
 
+    def __make_checkbox(self):
+
+        checkbox = QTableWidgetItem()
+        checkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+        checkbox.setCheckState(Qt.Unchecked)
+
+        return checkbox
+
     def add_item(self, account):
         row = self.table_list.rowCount()
         self.table_list.insertRow(row)
 
-        chkbox = QTableWidgetItem()
-        chkbox.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-        chkbox.setCheckState(Qt.Unchecked)
+        chkbox = self.__make_checkbox()
+
         self.table_list.setItem(
             row, 0, chkbox)
+
         self.table_list.setItem(
             row, 1, MyTableWidgetItem(account[0]))
+
         self.table_list.setItem(
             row, 2, MyTableWidgetItem(account[1]))
+
         self.table_list.setItem(
             row, 3, MyTableWidgetItem(self.VALID[False]))
+
+        qitem = (self.table_list.item(row, 1), self.table_list.item(row, 2))
+
+        for idx in range(2):
+            self.__set_table_item_tooptip(qitem[idx], account[idx])
+
+    def __set_table_item_tooptip(self, qitem, account):
+        qitem.setToolTip(account)
 
     def __get_checked_items(self):
         t = self.table_list
